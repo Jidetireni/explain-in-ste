@@ -12,10 +12,10 @@ It applies the writing rules of Simplified Technical English (STE). It is **not*
 
 ## Install
 
-With the skills CLI (once this repo is on GitHub):
+With the skills CLI:
 
 ```bash
-npx skills add <owner>/explain-in-ste -g
+npx skills add Jidetireni/explain-in-ste -g
 ```
 
 Manually, copy this folder into a directory opencode scans:
