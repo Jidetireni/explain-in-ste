@@ -1,10 +1,10 @@
 # Examples
 
-Three worked before/after pairs. Each one lists the rules it demonstrates. Follow the "after" versions as patterns when drafting.
+Three worked before/after pairs. Each one lists the rules and steps it demonstrates. Follow the "after" versions as patterns when drafting.
 
-## 1. A request flow
+## 1. A request flow (explain mode)
 
-**Rules shown**: one point per sentence, active voice with a named actor, numbered flow, one word per meaning.
+**Shown here**: the glossary section, one point per sentence, active voice with a named actor, numbered flow with citations. The citations name real locations in the code the model read in step 3 of the skill.
 
 **Before:**
 
@@ -14,17 +14,27 @@ Problems: two passives hide the actors ("gets invoked", "gets executed", "persis
 
 **After:**
 
-1. The auth middleware validates the token.
-2. The resolver receives the request.
-3. The resolver calls the service.
-4. The service runs the business rules.
-5. The service saves the result in the database.
+Purpose: The login flow authenticates a user and creates a session.
 
-The rewrite makes four things visible: who acts, in what order, one action per sentence, and no hidden passive. Note that "resolver" is the only name for the resolver; the draft never swaps in "handler" or "endpoint".
+Glossary:
 
-## 2. A procedure with a warning
+- **auth middleware** — the part that checks the session token.
+- **resolver** — the part that receives the request after the auth middleware.
+- **service** — the part that runs the business rules.
 
-**Rules shown**: imperative for instructions, warning before the step it gates, simple tenses, articles kept.
+Flow:
+
+1. The auth middleware validates the token. (src/auth/middleware.ts: validateToken)
+2. The resolver receives the request. (src/resolver.ts: resolve)
+3. The resolver calls the service. (src/resolver.ts: resolve)
+4. The service runs the business rules. (src/service.ts: login)
+5. The service saves the result in the database. (src/service.ts: login)
+
+The rewrite makes four things visible: who acts, in what order, one action per sentence, and no hidden passive. "Resolver" is the only name for the resolver; the draft never swaps in "handler" or "endpoint". Each step carries the location that shows it.
+
+## 2. A procedure with a warning (explain mode)
+
+**Shown here**: imperative for instructions, warning before the step it gates, simple tenses, articles kept. This is explain mode with the rollback script in hand: the warning and the wait step come from comments and logic in `scripts/rollback.sh`, so they are grounded, not invented.
 
 **Before:**
 
@@ -34,17 +44,26 @@ Problems: no actor ("should be done", "is started"); the warning is buried insid
 
 **After:**
 
-1. Check that the database schema is compatible with the previous version of the service.
-2. Warning: a rollback can lose data when the new version wrote columns that the previous version does not read.
-3. Start the rollback migration.
-4. Wait for the migration to finish.
-5. Redeploy the previous version of the service.
+Purpose: A rollback returns the service and the database to the previous release.
 
-The warning owns its sentence, sits directly before the step it applies to, and starts with "Warning:". Every step is an imperative with an implied "you" as the actor.
+Glossary:
+
+- **rollback migration** — the script step that reverses the latest schema change.
+- **previous version** — the release that ran before the current one.
+
+Procedure:
+
+1. Check that the database schema is compatible with the previous version. (scripts/rollback.sh: checkSchema)
+2. Warning: a rollback can lose data when the new version wrote columns that the previous version does not read. (scripts/rollback.sh:14)
+3. Start the rollback migration. (scripts/rollback.sh: migrate)
+4. Wait for the migration to finish. (scripts/rollback.sh: migrate)
+5. Redeploy the previous version of the service. (scripts/rollback.sh: redeploy)
+
+Every step is an imperative with an implied "you" as the actor. The warning owns its sentence, sits directly before the step it applies to, and starts with "Warning:".
 
 ## 3. Rewrite mode
 
-**Rules shown**: rewrite keeps coverage and order; noun stacks capped at 3; one word per meaning.
+**Shown here**: rewrite keeps coverage and order; the input's exact terms survive; a conditional stays a condition; an added sentence carries an `[Added: …]` flag.
 
 **Before** (a paragraph from an internal guide):
 
@@ -54,11 +73,22 @@ Problems: one sentence holds four facts; "operation", "extension", "applications
 
 **After:**
 
-1. The client sends a request to the server.
-2. The server answers with an authentication error because the access token has expired.
-3. The client refreshes the access token with the refresh token.
-4. The client sends the original request again.
-5. The user sees no error when the refresh succeeds.
-6. Warning: the client redirects the user to the re-authentication page when the refresh token has expired.
+Glossary:
 
-Every fact from the original survives, in the order the events happen. The four-fact sentence became five numbered steps and one warning.
+- **authentication token** — the token that proves the user's session.
+- **refresh token** — the token that replaces an expired authentication token.
+- **auto-refresh extension** — the client setting that retries a request after a refresh.
+- **re-authentication page** — the page where the user signs in again.
+
+1. The client application completes the asynchronous authentication token refresh operation.
+2. When the client application has the auto-refresh extension, the client application retries the original failed request.
+3. The retry shows no error to the user.
+4. When the refresh token has expired, the client application redirects the user to the re-authentication page.
+
+Every sentence traces to the original: the refresh operation, the auto-refresh condition, the retry, the missing error, and the redirect all come from the input's single sentence. The term stays "authentication token"; the rewrite never upgrades it to "access token". The condition "configured with the auto-refresh extension" survives as the condition on step 2.
+
+A rewrite that wants to add a fact the original never stated marks it, so the user can strike it:
+
+5. [Added: A retry can fail when the network is offline.]
+
+An unmarked addition is a defect. In this example there are no other additions.
